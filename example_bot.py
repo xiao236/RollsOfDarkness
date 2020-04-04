@@ -2,6 +2,7 @@ import discord
 import parse
 import random
 import os
+import re
 
 def get_inputs(command):
     """
@@ -14,47 +15,52 @@ def get_inputs(command):
     explosive (bool): should 10s explode?
     damage (int) # damage dice to roll [non-zero for attacks only]
     explosive_damage (bool): is the damage explosive? [only for attacks]
+    threshold (int): threshold of successes needed
     """
-    
-    inputs = parse.parse("/w {:d}", command)
-    if(inputs):
-        return inputs[0], 6, False, 0
-    
-    inputs = parse.parse("/w {:d}!", command)
-    if(inputs):
-        return inputs[0], 6, True, 0
-
-    inputs = parse.parse("/w {:d}b{:d}", command)
-    if(inputs):
-        return inputs[0], inputs[1], False, 0
-
-    inputs = parse.parse("/w {:d}!b{:d}", command)
-    if(inputs):
-        return inputs[0], inputs[1], True, 0
+    dice = 0
+    diff = 6
+    expl = False
+    dam = 0
+    edam = False
+    thre = 0
 
     # Fighting
-
-    inputs = parse.parse("/w {:d}d{:d}b{:d}", command)
+    inputs = parse.parse("/w {}d{}", command)
     if(inputs):
-        return inputs[0], inputs[2], True, inputs[1]
+        match = re.findall(r"\/w (\d+)(!)*d(\d+)(!)*b*(\d+)*t*(\d+)*", command)
+        if(match):
+            dice = int(match[0][0])
+            expl = (match[0][1] == '!')
+            dam  = int(match[0][2])
+            edam = (match[0][3] == '!')
+            if(match[0][4] != ''):
+                diff = int(match[0][4])
+            if(match[0][5] != ''):
+                thre = int(match[0][5])
+        return dice, diff, expl, dam, edam, thre
 
-    inputs = parse.parse("/w {:d}d{:d}b{:d}", command)
+    inputs = parse.parse("/w {}b{}", command)
     if(inputs):
-        return inputs[0], inputs[2], False, inputs[1]
+        match = re.findall(r"\/w (\d+)(!)*b(\d+)t*(\d+)*", command)
+        if(match):
+            dice = int(match[0][0])
+            expl = (match[0][1] == '!')
+            diff = int(match[0][2])
+            if(match[0][3] != ''):
+                thre = int(match[0][3])
+        return dice, diff, expl, dam, edam, thre  
 
-    inputs = parse.parse("/w {:d}d{:d}b{:d}", command)
+    inputs = parse.parse("/w {}", command)
     if(inputs):
-        return inputs[0], inputs[2], False, inputs[1]
+        match = re.findall(r"\/w (\d+)(!)", command)
+        if(match):
+            dice = int(match[0][0])
+            expl = (match[0][1] == '!')
+        return dice, diff, expl, dam, edam, thre
 
-    inputs = parse.parse("/w {:d}d{:d}b{:d}", command)
-    if(inputs):
-        return inputs[0], inputs[2], False, inputs[1]
+    return dice, diff, expl, dam, edam, thre 
 
-            
-
-    return 0, 0, False, 0
-
-def roll(dice, difficulty, explosive):
+def roll(dice, difficulty, explosive, threshold):
     """
     Args:
     dice (int): # dice to roll
@@ -67,18 +73,24 @@ def roll(dice, difficulty, explosive):
     """
 
     exploded = False
-    noSucc = True
+    noSucc = True # keeping this name for humorous reasons
     rolls = []
     successes = 0      
-    msg = "Rolling %d dice at diff %d: (" % (dice, difficulty)
+    if(threshold > 0):
+        msg = "Rolling %d dice at difficulty %d, threshold %d: (" % (dice, difficulty, threshold)
+    else:
+        msg = "Rolling %d dice at difficulty %d: (" % (dice, difficulty)
     x = 0
 
     while x < dice:
         d = random.randint(1,10)
         rolls.append(d)
         if(d >= difficulty):
-            successes += 1
-            noSucc = False
+            if(threshold > 0):
+                threshold -= 1
+            else:
+                successes += 1
+                noSucc = False
             if(exploded):
                 msg += " ***%d***" % d
             else:
@@ -123,15 +135,14 @@ async def on_message(message):
 
     if command.startswith('/w'):
         if command.startswith('/w help'):
-            #await message.channel.send('Roll oWoD dice with XbY; X is number of dice, Y is the difficulty. \nOptionally use with "X!bY" to explode tens')
             await message.channel.send('Roll Old World of Darkness style dice.\nFor basic rolls use "XbYtZ" where X is the number of dice Y is the dificulty and Z is the threshold.\nMake dice explode with"X!bYtZ".\nDefault to threshold 0 with "XbY".\nDefault to difficulty 6 with just "X".')
             await message.channel.send('To roll an attack as one command use "XdWbYtZ" where X is the number of dice to hit and W is the number of dice for damage (Y and Z optionally as above).  Difficulty and threshold only apply to the to hit roll.\nYou can also make either damage or to hit dice explode with "X!dWbYtZ" or "XdW!bYtZ" (or both with "X!dW!bYtZ" if you really want to be excessive).')
             return
         elif command.startswith('/w example'):
-            await message.channel.send("Let's say Ragnar the Purebreed wants to roll to attack with his claws in Crinos form.\nRagnar has a base of 4 Dexterity, with +1 for Cirnos form, and he has 5 brawling so he has a total of 10 dice to hit.\nRagnar has a base of 4 strength, with a +4 strength for Crinos form and +2 (? correct this) from Werwolf claws, for a total of 11 dice for damage.\nSince Ragnar has specializations in both Ripping and Tearing, both damage and to hit can explode.\nLet's assume that ragnar has been enchanted by the avatar of War, so he has +2 difficulty and +2 threshold for a total of difficulty 8 threshold 2.\n\nThis makes the final command '/w 10!d11!b8t2'")
+            await message.channel.send("Let's say Ragnar the Purebreed wants to roll to attack with his claws in Crinos form.\nRagnar has a base of 4 Dexterity, with +1 for Cirnos form, and he has 5 brawling so he has a total of 10 dice to hit.\nRagnar has a base of 5 strength, with a +4 strength for Crinos form and +2 (? correct this) from Werwolf claws, for a total of 11 dice for damage.\nSince Ragnar has specializations in both Ripping and Tearing, both damage and to hit can explode.\nLet's assume that ragnar has been enchanted by the avatar of War, so he has +2 difficulty and +2 threshold for a total of difficulty 8 threshold 2.\n\nThis makes the final command '/w 10!d11!b8t2'")
             return
        
-        dice, difficulty, explosive, damage = get_inputs(command)
+        dice, difficulty, explosive, damage, explosive_damage, threshold = get_inputs(command)
 
         try:
             if (dice <= 0 or difficulty <= 1):
@@ -144,11 +155,11 @@ async def on_message(message):
             await message.channel.send('There seems to be a problem...')
             return  
 
-        msg, hits = roll(dice, difficulty, explosive)
+        msg, hits = roll(dice, difficulty, explosive, threshold)
         if(damage != 0):
             if(hits > 0):
                 msg += "\nThat's a hit! Let's do some damage.\n"
-                msg2, _ = roll(damage + hits, difficulty, explosive)
+                msg2, _ = roll(damage + hits - 1, 6, explosive_damage, 0)
                 msg += msg2
             else:
                 msg += "\nMission failed, we'll get em next time."
@@ -161,6 +172,3 @@ token = os.environ.get('TOKEN')
 # $env:TOKEN = 'your bot token'
 # in your environment before testing
 client.run(token)
-
-
-    
