@@ -52,7 +52,7 @@ def get_inputs(command):
 
     inputs = parse.parse("/w {}", command)
     if(inputs):
-        match = re.findall(r"\/w (\d+)(!)", command)
+        match = re.findall(r"\/w (\d+)(!)*", command)
         if(match):
             dice = int(match[0][0])
             expl = (match[0][1] == '!')
@@ -135,24 +135,32 @@ async def on_message(message):
 
     if command.startswith('/w'):
         if command.startswith('/w help'):
-            await message.channel.send('Roll Old World of Darkness style dice.\nFor basic rolls use "XbYtZ" where X is the number of dice Y is the dificulty and Z is the threshold.\nMake dice explode with"X!bYtZ".\nDefault to threshold 0 with "XbY".\nDefault to difficulty 6 with just "X".')
-            await message.channel.send('To roll an attack as one command use "XdWbYtZ" where X is the number of dice to hit and W is the number of dice for damage (Y and Z optionally as above).  Difficulty and threshold only apply to the to hit roll.\nYou can also make either damage or to hit dice explode with "X!dWbYtZ" or "XdW!bYtZ" (or both with "X!dW!bYtZ" if you really want to be excessive).')
+            dm = message.author.dm_channel
+            if(dm == None):
+                await message.author.create_dm()
+            dm = message.author.dm_channel
+            await dm.send('Roll Old World of Darkness style dice.\nFor basic rolls use "XbYtZ" where X is the number of dice Y is the dificulty and Z is the threshold.\nMake dice explode with"X!bYtZ".\nDefault to threshold 0 with "XbY".\nDefault to difficulty 6 with just "X".')
+            await dm.send('To roll an attack as one command use "XdWbYtZ" where X is the number of dice to hit and W is the number of dice for damage (Y and Z optionally as above).  Difficulty and threshold only apply to the to hit roll.\nYou can also make either damage or to hit dice explode with "X!dWbYtZ" or "XdW!bYtZ" (or both with "X!dW!bYtZ" if you really want to be excessive).')
             return
         elif command.startswith('/w example'):
-            await message.channel.send("Let's say Ragnar the Purebreed wants to roll to attack with his claws in Crinos form.\nRagnar has a base of 4 Dexterity, with +1 for Cirnos form, and he has 5 brawling so he has a total of 10 dice to hit.\nRagnar has a base of 5 strength, with a +4 strength for Crinos form and +2 (? correct this) from Werwolf claws, for a total of 11 dice for damage.\nSince Ragnar has specializations in both Ripping and Tearing, both damage and to hit can explode.\nLet's assume that ragnar has been enchanted by the avatar of War, so he has +2 difficulty and +2 threshold for a total of difficulty 8 threshold 2.\n\nThis makes the final command '/w 10!d11!b8t2'")
+            dm = message.author.dm_channel
+            if(dm == None):
+                await message.author.create_dm()
+            dm = message.author.dm_channel
+            await dm.send("Let's say Ragnar the Purebreed wants to roll to attack with his claws in Crinos form.\nRagnar has a base of 4 Dexterity, with +1 for Cirnos form, and he has 5 brawling so he has a total of 10 dice to hit.\nRagnar has a base of 5 strength, with a +4 strength for Crinos form and +2 (? correct this) from Werwolf claws, for a total of 11 dice for damage.\nSince Ragnar has specializations in both Ripping and Tearing, both damage and to hit can explode.\nLet's assume that ragnar has been enchanted by the avatar of War, so he has +2 difficulty and +2 threshold for a total of difficulty 8 threshold 2.\n\nThis makes the final command '/w 10!d11!b8t2'")
             return
        
         dice, difficulty, explosive, damage, explosive_damage, threshold = get_inputs(command)
 
         try:
             if (dice <= 0 or difficulty <= 1):
-                await message.channel.send('Those numbers aren\'t quite right')
+                await message.channel.send(message.author.mention + ': Those numbers aren\'t quite right')
                 return
             elif(dice >= 100):
-                await message.channel.send('More than 100 dice! That\'s too much, man!')
+                await message.channel.send(message.author.mention + ': More than 100 dice! That\'s too much, man!')
                 return
         except:
-            await message.channel.send('There seems to be a problem...')
+            await message.channel.send(message.author.mention + ': There seems to be a problem...')
             return  
 
         msg, hits = roll(dice, difficulty, explosive, threshold)
@@ -165,7 +173,7 @@ async def on_message(message):
                 msg += "\nMission failed, we'll get em next time."
             
 
-        await message.channel.send(msg)
+        await message.channel.send(message.author.mention + ': ' + msg)
 
 token = os.environ.get('TOKEN')
 # Be sure to run 
