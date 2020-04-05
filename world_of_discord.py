@@ -4,6 +4,18 @@ import random
 import os
 import re
 
+token = os.environ.get('TOKEN')
+file = #<------------input file name
+macros = load_macros()
+# Be sure to run 
+# $env:TOKEN = 'your bot token'
+# in your environment before testing
+client.run(token)
+
+
+
+
+
 def get_inputs(command):
     """
     Args:
@@ -175,8 +187,30 @@ async def on_message(message):
 
         await message.channel.send(message.author.mention + ': ' + msg)
 
-token = os.environ.get('TOKEN')
-# Be sure to run 
-# $env:TOKEN = 'your bot token'
-# in your environment before testing
-client.run(token)
+def process_macro(name, command="", delete=False, show=False, run=False):
+    if delete:
+        #edit macro file
+    elif show:
+        await message.channel.send(message.author.mention + ": $" + name
+    elif run:
+        get_inputs(macros[name])
+    else:
+        get_inputs("/w " + macros[name])
+        if !(name in macros.keys()):
+            macros[name] = command
+            macro_file = open(file, 'a')
+            macro_file = write(name + '$' + command + '\n')
+            macro_file.close()
+        else:
+            macros[name] = command
+            #edit macro file
+
+def load_macros():
+    macro_file = open(file)
+    macro_txt = read(macro_file)
+    macro_file.close()
+    macro_array = macro_txt.split("\n")
+    for macro_line in macro_array:
+        input = parse("{}${}", macro_line)
+        if !(input[0] in macros.keys()):
+            macros[input[0]] = input[1]
