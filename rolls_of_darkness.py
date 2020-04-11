@@ -147,7 +147,7 @@ async def on_message(message):
             if(dm == None):
                 await message.author.create_dm()
             dm = message.author.dm_channel
-            await dm.send("Let's say Ragnar the Purebreed wants to roll to attack with his claws in Crinos form.\nRagnar has a base of 4 Dexterity, with +1 for Cirnos form, and he has 5 brawling so he has a total of 10 dice to hit.\nRagnar has a base of 5 strength, with a +4 strength for Crinos form and +2 (? correct this) from Werwolf claws, for a total of 11 dice for damage.\nSince Ragnar has specializations in both Ripping and Tearing, both damage and to hit can explode.\nLet's assume that ragnar has been enchanted by the avatar of War, so he has +2 difficulty and +2 threshold for a total of difficulty 8 threshold 2.\n\nThis makes the final command '/w 10!d11!b8t2'")
+            await dm.send("Let's say Ragnar the Purebreed wants to roll to attack with his claws in Crinos form.\nRagnar has a base of 4 Dexterity, with +1 for Cirnos form, and he has 5 brawling so he has a total of 10 dice to hit.\nRagnar has a base of 5 strength, with a +4 strength for Crinos form and +2 from Werwolf claws, for a total of 11 dice for damage.\nSince Ragnar has specializations in both Ripping and Tearing, both damage and to hit can explode.\nLet's assume that ragnar has been enchanted by the avatar of War, so he has +2 difficulty and +2 threshold for a total of difficulty 8 threshold 2.\n\nThis makes the final command '/w 10!d11!b8t2'")
             return
        
         dice, difficulty, explosive, damage, explosive_damage, threshold = get_inputs(command)
