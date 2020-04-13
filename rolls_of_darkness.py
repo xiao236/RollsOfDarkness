@@ -3,19 +3,6 @@ import parse
 import random
 import os
 import re
-import fileinput
-
-token = os.environ.get('TOKEN')
-file = #<------------input file name
-macros = load_macros()
-# Be sure to run 
-# $env:TOKEN = 'your bot token'
-# in your environment before testing
-client.run(token)
-
-
-
-
 
 def get_inputs(command):
     """
@@ -162,9 +149,6 @@ async def on_message(message):
             dm = message.author.dm_channel
             await dm.send("Let's say Ragnar the Purebreed wants to roll to attack with his claws in Crinos form.\nRagnar has a base of 4 Dexterity, with +1 for Cirnos form, and he has 5 brawling so he has a total of 10 dice to hit.\nRagnar has a base of 5 strength, with a +4 strength for Crinos form and +2 from Werwolf claws, for a total of 11 dice for damage.\nSince Ragnar has specializations in both Ripping and Tearing, both damage and to hit can explode.\nLet's assume that ragnar has been enchanted by the avatar of War, so he has +2 difficulty and +2 threshold for a total of difficulty 8 threshold 2.\n\nThis makes the final command '/w 10!d11!b8t2'")
             return
-        # Macros
-        elif command.startswith("/w $"):
-            process_macro(command)
        
         dice, difficulty, explosive, damage, explosive_damage, threshold = get_inputs(command)
 
@@ -191,44 +175,8 @@ async def on_message(message):
 
         await message.channel.send(message.author.mention + ': ' + msg)
 
-def process_macro(command):
-    inputs = parse.parse("/w ${} delete", command)
-    if inputs:
-        del macros[name]
-        macro_file = open(file, 'w')
-        for macro in macros.keys:
-            macro_file.write(macro + '$' + macros[macro]
-        macro_file.close()
-    
-    inputs = parse.parse("/w ${} show", command)
-    if inputs:
-        await message.channel.send(message.author.mention + ": $" + name
-        
-    inputs = parse.parse("/w ${} {}", command)
-    if inputs:
-        get_inputs("/w " + macros[name])
-        if !(name in macros.keys()):
-            macros[name] = command
-            macro_file = open(file, 'a')
-            macro_file = write(name + '$' + command + '\n')
-            macro_file.close()
-        else:
-            macros[name] = command
-            macro_file = open(file, 'w')
-            for macro in macros.keys:
-                macro_file.write(macro + '$' + macros[macro]
-            macro_file.close()
-    
-    inputs = parse.parse("/w ${}", command)
-    if inputs:
-        get_inputs(macros[name])
-
-def load_macros():
-    macro_file = open(file, 'r')
-    macro_txt = read(macro_file)
-    macro_file.close()
-    macro_array = macro_txt.split("\n")
-    for macro_line in macro_array:
-        input = parse.parse("{}${}", macro_line)
-        if !(input[0] in macros.keys()):
-            macros[input[0]] = input[1]
+token = os.environ.get('TOKEN')
+# Be sure to run 
+# $env:TOKEN = 'your bot token'
+# in your environment before testing
+client.run(token)
