@@ -140,6 +140,15 @@ def str_roll(target, roll):
     else:
         return str(roll)
 
+def roll_3d6():
+    """
+    Roll 3d6
+    """
+    dsix1 = random.randint(1, 6)
+    dsix2 = random.randint(1, 6)
+    dsix3 = random.randint(1, 6)
+    return dsix1, dsix2, dsix3
+
 client = discord.Client()
 
 @client.event
@@ -164,6 +173,7 @@ async def on_message(message):
             await dm.send("To make a skill roll, type `/c X`, where X is your rating in that skill.")
             await dm.send("You can add bonus or penalty by adding b / + for bonus or p / - for penalty (and bb / ++ / pp / -- for double): `/c 45++`")
             await dm.send("Add h to make a hard roll, or e to make an extreme roll: `/c 60e`")
+            await dm.send("To roll stats for a new character, type `/c chargen`")
             await dm.send("Finally, during development phase add d after the target to see if a ticked skill improves: `/c 15d`")
             return
         elif command.startswith('/c example'):
@@ -173,6 +183,19 @@ async def on_message(message):
             dm = message.author.dm_channel
             await dm.send("Let's say you need to shoot someone who is stabbing one of your friends behind a car. You'll take a penalty for shooting through cover, and for shooting into melee. Your shooting skill is a high 70, but you will take 2 penalties. Roll `/c 70pp` or `/c 70--`")
             await dm.send("Let's say you managed to shoot someone, at some point, during an arc. At the end you have a chance to improve it: just roll `/c 70d`; that's it! Easy bot.")
+            return
+        elif command.startswith('/c chargen'):
+            stats3 = ["STR", "CON", "DEX", "APP", "POW"]
+            stats2 = ["SIZ", "INT", "EDU"]
+            await message.channel.send(message.author.mention + ': Rolling stats (before aging)')
+            for stat in stats3:
+                d1, d2, d3 = roll_3d6()
+                msg = "`" + stat + " = ( %d + %d + %d ) * 5 = %d `" % (d1, d2, d3, (d1+d2+d3)*5)
+                await message.channel.send(msg)
+            for stat in stats2:
+                d1, d2, d3 = roll_3d6()
+                msg = "`" + stat + " = ( %d + %d + 6 ) * 5 = %d `" % (d1, d2, (d1+d2+6)*5)
+                await message.channel.send(msg)
             return
        
         target, orig_target, bonus, development = get_inputs(command)
