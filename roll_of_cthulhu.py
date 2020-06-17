@@ -187,15 +187,15 @@ async def on_message(message):
         elif command.startswith('/c chargen'):
             stats3 = ["STR", "CON", "DEX", "APP", "POW"]
             stats2 = ["SIZ", "INT", "EDU"]
+            msg = "";
             await message.channel.send(message.author.mention + ': Rolling stats (before aging)')
             for stat in stats3:
                 d1, d2, d3 = roll_3d6()
-                msg = "`" + stat + " = ( %d + %d + %d ) * 5 = %d `" % (d1, d2, d3, (d1+d2+d3)*5)
-                await message.channel.send(msg)
+                msg += "`" + stat + " = ( %d + %d + %d ) * 5 = %d `\n" % (d1, d2, d3, (d1+d2+d3)*5)
             for stat in stats2:
                 d1, d2, d3 = roll_3d6()
-                msg = "`" + stat + " = ( %d + %d + 6 ) * 5 = %d `" % (d1, d2, (d1+d2+6)*5)
-                await message.channel.send(msg)
+                msg += "`" + stat + " = ( %d + %d + 6 ) * 5 = %d `\n" % (d1, d2, (d1+d2+6)*5)
+            await message.channel.send(msg)
             return
        
         target, orig_target, bonus, development = get_inputs(command)
